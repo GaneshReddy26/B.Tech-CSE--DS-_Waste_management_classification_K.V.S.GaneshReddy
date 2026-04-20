@@ -1,137 +1,75 @@
-# ♻️ Waste Management Classification using Machine Learning
+ # AI Waste Management Classification and Recycling Assistant
+ ## Project Overview
 
-## 📌 Project Overview
+This project focuses on building an AI-powered waste classification system that automatically identifies and categorizes waste into different types such as organic, recyclable, and non-recyclable waste using image processing and machine learning techniques.
 
-This project focuses on building an intelligent system to classify different types of waste using machine learning and image processing techniques. The goal is to support efficient waste segregation, which is essential for recycling and environmental sustainability.
+The goal is to improve waste segregation efficiency and support smart waste management systems.
 
-The application allows users to upload an image of waste material and predicts its category (such as organic, recyclable, or hazardous) in real-time.
-
----
-
-## 🎯 Objectives
-
-* To automate waste classification using machine learning
-* To improve waste segregation efficiency
-* To provide a user-friendly interface for real-time predictions
-* To contribute towards sustainable waste management practices
-
----
-
-## 🛠️ Technologies Used
-
-* **Programming Language:** Python
-* **Libraries & Frameworks:**
-
-  * Streamlit
-  * NumPy
-  * Pandas
-  * OpenCV
-  * Scikit-learn
-  * TensorFlow / PyTorch
-* **Tools:** GitHub, VS Code
-
----
-
-## 📂 Project Structure
-
-```
-├── app/                # Main application files
-├── src/                # Source code and modules
-├── static/             # Static files (if any)
-├── templates/          # HTML templates (if used)
-├── config.yaml         # Configuration file
-├── requirements.txt    # Project dependencies
-├── README.md           # Project documentation
-```
-
----
-
-## ⚙️ Installation & Setup
-
-### 1️⃣ Clone the Repository
-
-```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
-```
-
-### 2️⃣ Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3️⃣ Run the Application
-
-```bash
-streamlit run app/app.py
-```
-
----
-
-## 🚀 Features
-
-* Upload waste images for classification
-* Real-time prediction using trained ML model
-* Simple and interactive user interface
-* Supports multiple waste categories
-* Lightweight and easy to deploy
-
----
-
-## 📊 Model Information
-
-* Model Type: Image Classification
-* Input Size: 224 × 224 × 3
-* Techniques Used: Data preprocessing, normalization, and model training
-* Evaluation Metrics: Accuracy, Precision, Recall
-
----
-
-## 📷 Sample Output
-
-*(Add screenshots of your application here)*
-
----
-
-## 🌐 Live Demo
-
-👉 [Click here to view the deployed app](https://your-streamlit-link.streamlit.app)
-
----
-
-## ⚠️ Limitations
-
-* Model accuracy depends on dataset quality
-* Limited categories of waste
-* Requires proper lighting conditions for accurate prediction
-
----
-
-## 🔮 Future Enhancements
-
-* Improve model accuracy with larger datasets
-* Add more waste categories
-* Deploy as a mobile application
-* Integrate real-time camera detection
-
----
-
-## 👨‍💻 Author
-
-**Ganesh Reddy**
-B.Tech CSE (Data Science)
-
----
-
-## 📄 License
-
-This project is for academic and educational purposes.
-
----
-
-## 🙌 Acknowledgements
-
-* Open-source libraries and tools
-* Academic guidance and resources
-* Dataset providers
+## Objectives
+Automate waste classification using AI
+Improve recycling efficiency
+Reduce human effort in waste sorting
+Promote sustainable waste management practices
+## Technologies Used
+Programming Language: Python
+Libraries & Frameworks:
+TensorFlow / Keras
+OpenCV
+NumPy
+Pandas
+Matplotlib
+## Tools:
+Jupyter Notebook
+VS Code / PyCharm
+Dataset
+The dataset consists of labeled images of waste items.
+Categories may include:
+Organic Waste
+Recyclable Waste
+Non-Recyclable Waste
+Images are preprocessed (resizing, normalization, augmentation).
+## Methodology
+1. Data Collection
+Collected waste images from datasets or online sources
+2. Data Preprocessing
+Image resizing (e.g., 224×224×3)
+Normalization of pixel values (0–1 range)
+Data augmentation (flip, rotation)
+3. Model Building
+Convolutional Neural Network (CNN) used
+Layers:
+Convolution Layer
+Pooling Layer
+Fully Connected Layer
+Output Layer (Softmax)
+4. Model Training
+Loss Function: Categorical Crossentropy
+Optimizer: Adam
+Metrics: Accuracy
+5. Model Evaluation
+Accuracy score
+Confusion matrix
+Precision, Recall, F1-score
+## Features
+Image-based waste classification
+Real-time prediction capability
+User-friendly interface (optional: Streamlit app)
+Scalable for smart city applications
+## Results
+Achieved high accuracy in classifying waste categories
+Efficient performance on test data
+Reduced misclassification with tuning
+## Challenges
+Limited dataset size
+Similar-looking waste categories
+Lighting and background variations
+## Future Improvements
+Use larger and real-time datasets
+Deploy on mobile applications
+Integrate with IoT-based smart bins
+Improve model accuracy using advanced architectures (ResNet, MobileNet)
+## Applications
+Smart cities
+Recycling plants
+Waste management systems
+Environmental monitoring
