@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto text-center">
+        {% if not model_loaded %}
+        <div class="alert alert-warning">
+            <h4><i class="fas fa-exclamation-triangle"></i> Demo Mode</h4>
+            <p>Model file not found. Running in demo mode with example predictions.</p>
+            <p class="mb-0">To enable full AI classification, please ensure your model file is available.</p>
+        </div>
+        {% endif %}
+        
+        <h1 class="display-4 mb-4">♻️ AI-Powered Waste Classification</h1>
+        <p class="lead mb-4">Upload, capture, or use real-time camera to classify waste items with recycling guidance.</p>
+        
+        <div class="row mt-5">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-upload fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Upload Image</h5>
+                        <p class="card-text">Upload an existing image of waste for classification</p>
+                        <a href="{{ url_for('upload') }}" class="btn btn-primary">Get Started</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-camera fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Take Photo</h5>
+                        <p class="card-text">Use your camera to capture waste items in real-time</p>
+                        <a href="{{ url_for('camera') }}" class="btn btn-success">Capture</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-video fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title">Real-time Detection</h5>
+                        <p class="card-text">Continuous waste detection with live camera feed</p>
+                        <a href="{{ url_for('realtime') }}" class="btn btn-warning">Start Detection</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if session.prediction_history %}
+        <div class="row mt-5">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-history"></i> Recent Predictions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Class</th>
+                                        <th>Confidence</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for entry in session.prediction_history[-3:] %}
+                                    <tr>
+                                        <td>{{ entry.timestamp.split(' ')[1] }}</td>
+                                        <td>{{ entry.predicted_class }}</td>
+                                        <td>{{ entry.confidence }}</td>
+                                        <td>{{ entry.status }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{{ url_for('history') }}" class="btn btn-outline-primary btn-sm">View Full History</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

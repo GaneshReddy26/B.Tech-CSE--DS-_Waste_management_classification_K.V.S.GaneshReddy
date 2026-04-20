@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h2 class="mb-4"><i class="fas fa-upload"></i> Upload Image for Classification</h2>
+        
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        {% if demo_mode %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            Running in demo mode. Showing example predictions.
+        </div>
+        {% endif %}
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select waste image:</label>
+                        <input class="form-control" type="file" id="file" name="file" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Analyze Image
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if uploaded_image %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Original Image</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <img src="{{ uploaded_image }}" class="img-fluid rounded" alt="Uploaded Image" style="max-height: 400px;">
+                    </div>
+                </div>
+            </div>
+            
+            {% if annotated_image %}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Detected Objects</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <img src="{{ annotated_image }}" class="img-fluid rounded" alt="Annotated Image" style="max-height: 400px;">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if confidence_plot %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Confidence Distribution</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ confidence_plot }}" class="img-fluid" alt="Confidence Plot">
+            </div>
+        </div>
+        {% endif %}
+
+        {% if detections %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-list"></i> Detection Results</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Object</th>
+                                <th>Class</th>
+                                <th>Confidence</th>
+                                <th>Status</th>
+                                <th>Audio Guide</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detection in detections %}
+                            <tr>
+                                <td>{{ detection.object }}</td>
+                                <td><strong>{{ detection.class }}</strong></td>
+                                <td>{{ detection.confidence }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if 'recyclable' in detection.status.lower() %}bg-success
+                                        {% elif 'not' in detection.status.lower() %}bg-danger
+                                        {% else %}bg-warning{% endif %}">
+                                        {{ detection.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <audio controls class="audio-player">
+                                        <source src="{{ url_for('get_speech', class_name=detection.class) }}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </td>
+                            </tr>
+                            {% if detection.notes %}
+                            <tr>
+                                <td colspan="5">
+                                    <div class="alert alert-info mb-0">
+                                        <strong>Guidance:</strong> {{ detection.notes }}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if top3_predictions %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Top 3 Predictions</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for class_name, confidence in top3_predictions %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ class_name }}
+                        <span class="badge bg-primary rounded-pill">{{ (confidence * 100)|round(1) }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

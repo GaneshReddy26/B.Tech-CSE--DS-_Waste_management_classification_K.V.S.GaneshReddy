@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <h2 class="mb-4"><i class="fas fa-history"></i> Prediction History</h2>
+        
+        {% if history %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Previous Classifications</h5>
+                <div>
+                    <a href="{{ url_for('export_history') }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-download"></i> Export CSV
+                    </a>
+                    <a href="{{ url_for('clear_history') }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash"></i> Clear History
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Image</th>
+                                <th>Predicted Class</th>
+                                <th>Confidence</th>
+                                <th>Recycling Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in history %}
+                            <tr>
+                                <td>{{ entry.timestamp }}</td>
+                                <td>{{ entry.image }}</td>
+                                <td><strong>{{ entry.predicted_class }}</strong></td>
+                                <td>
+                                    <span class="badge bg-primary">{{ entry.confidence }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if 'recyclable' in entry.status.lower() %}bg-success
+                                        {% elif 'not' in entry.status.lower() %}bg-danger
+                                        {% else %}bg-warning{% endif %}">
+                                        {{ entry.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            <h4>No prediction history yet</h4>
+            <p>Start by uploading an image or using the camera to classify waste items.</p>
+            <a href="{{ url_for('upload') }}" class="btn btn-primary">Get Started</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

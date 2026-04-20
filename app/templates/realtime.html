@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <h2 class="mb-4"><i class="fas fa-video"></i> Real-time Waste Detection</h2>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            Real-time detection requires additional setup with WebRTC. This is a placeholder for the real-time interface.
+        </div>
+
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Real-time Detection Coming Soon</h5>
+                <p class="card-text">
+                    The real-time detection feature requires WebRTC integration and is currently under development.
+                    Please use the upload or camera features for now.
+                </p>
+                <div class="mt-4">
+                    <a href="{{ url_for('upload') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-upload"></i> Upload Image
+                    </a>
+                    <a href="{{ url_for('camera') }}" class="btn btn-success">
+                        <i class="fas fa-camera"></i> Take Photo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

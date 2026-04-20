@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <h2 class="mb-4"><i class="fas fa-video"></i> Real-time Waste Detection</h2>
+        
+        {% if not model_loaded %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> 
+            Running in demo mode. Real detection requires the model file.
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- Video Feed Column -->
+            <div class="col-lg-8 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Live Camera Feed</h5>
+                        <div class="btn-group">
+                            <button id="start-camera" class="btn btn-success btn-sm">
+                                <i class="fas fa-play"></i> Start Camera
+                            </button>
+                            <button id="stop-camera" class="btn btn-danger btn-sm" disabled>
+                                <i class="fas fa-stop"></i> Stop Camera
+                            </button>
+                            <button id="capture-btn" class="btn btn-primary btn-sm" disabled>
+                                <i class="fas fa-camera"></i> Capture
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body text-center">
+                        <div id="video-container" style="display: none;">
+                            <img id="video-feed" src="" alt="Live Feed" class="img-fluid rounded" 
+                                 style="max-height: 500px; border: 2px solid #dee2e6;">
+                        </div>
+                        <div id="camera-placeholder" class="text-muted py-5">
+                            <i class="fas fa-camera fa-4x mb-3"></i>
+                            <p>Camera feed will appear here when started</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detection Results Column -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-list"></i> Current Detections</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="detection-results">
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-search fa-2x mb-2"></i>
+                                <p>No objects detected yet</p>
+                                <small>Point camera at waste objects to see detections</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Detection Info</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <h6 class="text-primary">Detection Interval</h6>
+                                    <p class="mb-0">2 seconds</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <h6 class="text-success">Confidence Threshold</h6>
+                                    <p class="mb-0">60%</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <h6>Tips for Better Detection:</h6>
+                            <ul class="small">
+                                <li>Ensure good lighting</li>
+                                <li>Place objects clearly in frame</li>
+                                <li>Keep camera steady</li>
+                                <li>Avoid reflections and glare</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Captured Results Section -->
+        <div id="captured-results" style="display: none;">
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-image"></i> Captured Image Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 text-center">
+                            <img id="captured-image" class="img-fluid rounded" alt="Captured Image" 
+                                 style="max-height: 300px;">
+                        </div>
+                        <div class="col-md-6">
+                            <div id="capture-analysis"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class RealTimeDetector {
+    constructor() {
+        this.isStreaming = false;
+        this.videoInterval = null;
+        this.detectionInterval = null;
+        this.captureCount = 0;
+    }
+
+    startCamera() {
+        if (this.isStreaming) return;
+
+        const videoFeed = document.getElementById('video-feed');
+        const videoContainer = document.getElementById('video-container');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        
+        // Show video feed
+        videoContainer.style.display = 'block';
+        cameraPlaceholder.style.display = 'none';
+        
+        // Start video stream
+        videoFeed.src = "{{ url_for('video_feed') }}?t=" + new Date().getTime();
+        this.isStreaming = true;
+        
+        // Update button states
+        document.getElementById('start-camera').disabled = true;
+        document.getElementById('stop-camera').disabled = false;
+        document.getElementById('capture-btn').disabled = false;
+
+        // Start polling for detections
+        this.startDetectionPolling();
+    }
+
+    stopCamera() {
+        if (!this.isStreaming) return;
+
+        const videoFeed = document.getElementById('video-feed');
+        const videoContainer = document.getElementById('video-container');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        
+        // Stop video stream
+        videoFeed.src = '';
+        videoContainer.style.display = 'none';
+        cameraPlaceholder.style.display = 'block';
+        this.isStreaming = false;
+        
+        // Update button states
+        document.getElementById('start-camera').disabled = false;
+        document.getElementById('stop-camera').disabled = true;
+        document.getElementById('capture-btn').disabled = true;
+
+        // Stop detection polling
+        this.stopDetectionPolling();
+        
+        // Clear results
+        document.getElementById('detection-results').innerHTML = `
+            <div class="text-center text-muted py-3">
+                <i class="fas fa-search fa-2x mb-2"></i>
+                <p>No objects detected yet</p>
+                <small>Point camera at waste objects to see detections</small>
+            </div>
+        `;
+    }
+
+    startDetectionPolling() {
+        this.detectionInterval = setInterval(() => {
+            this.updateDetections();
+        }, 1000); // Update every second
+    }
+
+    stopDetectionPolling() {
+        if (this.detectionInterval) {
+            clearInterval(this.detectionInterval);
+            this.detectionInterval = null;
+        }
+    }
+
+    async updateDetections() {
+        try {
+            const response = await fetch("{{ url_for('get_detections') }}");
+            const detections = await response.json();
+            this.displayDetections(detections);
+        } catch (error) {
+            console.error('Error fetching detections:', error);
+        }
+    }
+
+    displayDetections(detections) {
+        const resultsContainer = document.getElementById('detection-results');
+        
+        if (!detections || detections.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-search fa-2x mb-2"></i>
+                    <p>No objects detected</p>
+                    <small>Point camera at waste objects</small>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        detections.forEach((detection, index) => {
+            const confidencePercent = (detection.confidence * 100).toFixed(1);
+            const statusClass = detection.status.toLowerCase().includes('recyclable') ? 'success' : 
+                              detection.status.toLowerCase().includes('not') ? 'danger' : 'warning';
+            
+            html += `
+                <div class="detection-item mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0">${detection.class}</h6>
+                        <span class="badge bg-${statusClass}">${detection.status}</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-primary" role="progressbar" 
+                             style="width: ${confidencePercent}%" 
+                             aria-valuenow="${confidencePercent}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small class="text-muted">Confidence: ${confidencePercent}%</small>
+                    ${detection.notes ? `
+                        <div class="mt-2">
+                            <small><strong>Guidance:</strong> ${detection.notes}</small>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+
+        resultsContainer.innerHTML = html;
+    }
+
+    async captureFrame() {
+        if (!this.isStreaming) return;
+
+        try {
+            const captureBtn = document.getElementById('capture-btn');
+            const originalText = captureBtn.innerHTML;
+            captureBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Capturing...';
+            captureBtn.disabled = true;
+
+            const response = await fetch("{{ url_for('capture_frame') }}");
+            const result = await response.json();
+
+            if (result.success) {
+                this.displayCaptureResult(result);
+                this.captureCount++;
+            } else {
+                alert('Error capturing frame: ' + result.error);
+            }
+
+            captureBtn.innerHTML = originalText;
+            captureBtn.disabled = false;
+
+        } catch (error) {
+            console.error('Error capturing frame:', error);
+            alert('Error capturing frame');
+            document.getElementById('capture-btn').innerHTML = '<i class="fas fa-camera"></i> Capture';
+            document.getElementById('capture-btn').disabled = false;
+        }
+    }
+
+    displayCaptureResult(result) {
+        const capturedResults = document.getElementById('captured-results');
+        const capturedImage = document.getElementById('captured-image');
+        const captureAnalysis = document.getElementById('capture-analysis');
+
+        // Show captured image
+        capturedImage.src = result.image_url;
+        
+        // Display analysis
+        let analysisHtml = '<h6>Analysis Results:</h6>';
+        result.detections.forEach(detection => {
+            const statusClass = detection.status.toLowerCase().includes('recyclable') ? 'success' : 
+                              detection.status.toLowerCase().includes('not') ? 'danger' : 'warning';
+            
+            analysisHtml += `
+                <div class="border rounded p-3 mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>${detection.class}</strong>
+                        <span class="badge bg-${statusClass}">${detection.status}</span>
+                    </div>
+                    <div class="mb-2">
+                        <small>Confidence: ${detection.confidence}</small>
+                    </div>
+                    ${detection.notes ? `
+                        <div>
+                            <small class="text-muted">${detection.notes}</small>
+                        </div>
+                    ` : ''}
+                    <div class="mt-2">
+                        <audio controls class="w-100">
+                            <source src="{{ url_for('get_speech', class_name='${detection.class}') }}" type="audio/mpeg">
+                            Your browser does not support audio.
+                        </audio>
+                    </div>
+                </div>
+            `;
+        });
+
+        captureAnalysis.innerHTML = analysisHtml;
+        capturedResults.style.display = 'block';
+
+        // Scroll to results
+        capturedResults.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Initialize real-time detector
+const detector = new RealTimeDetector();
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('start-camera').addEventListener('click', () => detector.startCamera());
+    document.getElementById('stop-camera').addEventListener('click', () => detector.stopCamera());
+    document.getElementById('capture-btn').addEventListener('click', () => detector.captureFrame());
+
+    // Stop camera when leaving page
+    window.addEventListener('beforeunload', () => detector.stopCamera());
+});
+</script>
+
+<style>
+.detection-item {
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff !important;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+#video-feed {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#camera-placeholder {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+</style>
+{% endblock %}

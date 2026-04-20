@@ -1,0 +1,2 @@
+timestamp,predicted_class,actual_class,confidence,image_info,feedback_notes
+2025-09-30T18:18:07.746159,Electronic waste,Electronic waste,0.9946600794792175,Object_1_in_multi_detection,
